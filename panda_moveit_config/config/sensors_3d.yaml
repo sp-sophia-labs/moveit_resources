@@ -1,0 +1,11 @@
+sensors:  ["sensor1"]
+sensor1:
+    sensor_plugin: occupancy_map_monitor/PointCloudOctomapUpdater
+    point_cloud_topic: /camera/depth/color/points
+    max_range: 1.0
+    point_subsample: 1 # Choose one of every point_subsample points.
+    padding_offset: 0.2 #Absolute padding (in m) around scaled collision shapes when excluding them from the octomap.
+    padding_scale: 2.0 #Should always be >= 1.0. Scale up collision shapes in the scene before excluding them from the octomap.
+    max_update_rate: 10000.0 #The octomap representation will be updated at rate less than or equal to this value.
+    filtered_cloud_topic: filtered_cloud
+    ns: rs_RGBD1 

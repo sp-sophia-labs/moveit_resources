@@ -7,17 +7,19 @@ from launch_ros.actions import Node
 from launch.actions import ExecuteProcess
 from ament_index_python.packages import get_package_share_directory
 from moveit_configs_utils import MoveItConfigsBuilder
+from launch_param_builder import ParameterBuilder
 
+
+_PANDA_MOVEIT_CONFIG_RSC = "moveit_resources_panda_moveit_config"
+
+def _octomap_launch_params(params: ParameterBuilder):
+    params.parameter("octomap_frame", "camera_depth_optical_frame")
+    params.parameter("octomap_resolution", 0.02)
+    params.parameter("max_range", 0.001)
+    return params.to_dict()
 
 def generate_launch_description():
-
-    # octomap config
-    octomap_config = {'octomap_frame': 'camera_rgb_optical_frame', 
-                        'octomap_resolution': 0.05,
-                        'max_range': 5.0}
-
-    octomap_updater_config = load_yaml('avoid_obstacle_scene', 'config/pointcloud_octomap.yaml')
-
+    
     # Command-line arguments
     tutorial_arg = DeclareLaunchArgument(
         "rviz_tutorial", default_value="False", description="Tutorial flag"
@@ -48,15 +50,19 @@ def generate_launch_description():
         .planning_pipelines(
             pipelines=["ompl", "chomp", "pilz_industrial_motion_planner", "stomp"]
         )
+        .sensors_3d("config/sensors_3d.yaml")
         .to_moveit_configs()
     )
+
+    _params_movegroup = ParameterBuilder(_PANDA_MOVEIT_CONFIG_RSC)
 
     # Start the actual move_group node/action server
     move_group_node = Node(
         package="moveit_ros_move_group",
         executable="move_group",
         output="screen",
-        parameters=[moveit_config.to_dict()],
+        parameters=([moveit_config.to_dict()] + [_octomap_launch_params(_params_movegroup)]
+        ),
         arguments=["--ros-args", "--log-level", "info"],
     )
 
